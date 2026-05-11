@@ -2,7 +2,7 @@ package com.jimmy.etfquant.controller;
 
 import com.jimmy.etfquant.dto.MovingAverageBacktestRequest;
 import com.jimmy.etfquant.dto.MovingAverageBacktestResponse;
-import com.jimmy.etfquant.service.QuantService;
+import com.jimmy.etfquant.service.BacktestService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/backtests")
 public class BacktestController {
 
-    private final QuantService quantService;
+    private final BacktestService backtestService;
 
-    public BacktestController(QuantService quantService) {
-        this.quantService = quantService;
+    public BacktestController(BacktestService backtestService) {
+        this.backtestService = backtestService;
     }
 
     @PostMapping("/moving-average")
     public MovingAverageBacktestResponse runMovingAverageBacktest(
             @Valid @RequestBody MovingAverageBacktestRequest request
     ) {
-        return quantService.runMovingAverageBacktest(request);
+        return backtestService.runAndSaveMovingAverageBacktest(request);
     }
 }
