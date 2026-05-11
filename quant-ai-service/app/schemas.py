@@ -19,6 +19,7 @@ class MovingAverageBacktestResponse(BaseModel):
     sharpe_ratio: float
     max_drawdown: float
     number_of_trades: int
+    ai_provider: str
     ai_summary_zh: str
     ai_summary_en: str
     equity_curve: list[dict]

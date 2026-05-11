@@ -207,7 +207,15 @@ select:focus {
   font-size: 0.92rem;
   color: #8a6f45 !important;
 }
-
+.ai-provider {
+  display: inline-block;
+  margin: 8px 0 12px !important;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef4ef;
+  color: #4f6f62 !important;
+  font-weight: 700;
+}
 @media (max-width: 900px) {
   .form-grid,
   .metric-grid {

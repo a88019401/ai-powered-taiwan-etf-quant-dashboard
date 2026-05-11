@@ -12,6 +12,7 @@ public record MovingAverageBacktestResponse(
         double sharpe_ratio,
         double max_drawdown,
         int number_of_trades,
+        String ai_provider,
         String ai_summary_zh,
         String ai_summary_en,
         List<EquityCurvePoint> equity_curve
@@ -27,6 +28,7 @@ public record MovingAverageBacktestResponse(
                 sharpe_ratio,
                 max_drawdown,
                 number_of_trades,
+                ai_provider,
                 ai_summary_zh,
                 ai_summary_en,
                 equity_curve
