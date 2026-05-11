@@ -1,4 +1,5 @@
 <script setup>
+
 import { computed, onMounted, ref } from "vue";
 import * as echarts from "echarts";
 import http from "./api/http";
@@ -14,7 +15,18 @@ const transactionCost = ref(0.001425);
 const loading = ref(false);
 const errorMessage = ref("");
 const result = ref(null);
+const authMode = ref('login')
+const phoneNumber = ref('')
+const password = ref('')
+const userName = ref('')
+const registrationCode = ref('')
+const authError = ref('')
+const authLoading = ref(false)
 
+const token = ref(localStorage.getItem('auth_token') || '')
+const currentUser = ref(JSON.parse(localStorage.getItem('auth_user') || 'null'))
+
+const isLoggedIn = computed(() => !!token.value)
 let equityChart = null;
 let drawdownChart = null;
 
@@ -53,6 +65,74 @@ onMounted(async () => {
   await loadEtfs();
 });
 
+async function login() {
+  authLoading.value = true
+  authError.value = ''
+
+  try {
+    const response = await http.post('/auth/login', {
+      phone_number: phoneNumber.value,
+      password: password.value,
+    })
+
+    saveAuth(response.data)
+  } catch (error) {
+    authError.value =
+      error.response?.data?.message ||
+      error.response?.data?.detail ||
+      'Login failed. Please check your phone number and password.'
+    console.error(error)
+  } finally {
+    authLoading.value = false
+  }
+}
+
+async function register() {
+  authLoading.value = true
+  authError.value = ''
+
+  try {
+    const response = await http.post('/auth/register', {
+      phone_number: phoneNumber.value,
+      password: password.value,
+      user_name: userName.value,
+      registration_code: registrationCode.value,
+    })
+
+    saveAuth(response.data)
+  } catch (error) {
+    authError.value =
+      error.response?.data?.message ||
+      error.response?.data?.detail ||
+      'Register failed. Please check your registration code.'
+    console.error(error)
+  } finally {
+    authLoading.value = false
+  }
+}
+
+function saveAuth(data) {
+  token.value = data.token
+  currentUser.value = {
+    user_id: data.user_id,
+    phone_number: data.phone_number,
+    user_name: data.user_name,
+  }
+
+  localStorage.setItem('auth_token', data.token)
+  localStorage.setItem('auth_user', JSON.stringify(currentUser.value))
+
+  authError.value = ''
+}
+
+function logout() {
+  token.value = ''
+  currentUser.value = null
+
+  localStorage.removeItem('auth_token')
+  localStorage.removeItem('auth_user')
+}
+
 async function loadEtfs() {
   try {
     const response = await http.get("/etfs");
@@ -67,6 +147,10 @@ async function loadEtfs() {
 }
 
 async function runBacktest() {
+    if (!isLoggedIn.value) {
+    errorMessage.value = 'Please login before running a backtest.'
+    return
+  }
   loading.value = true;
   errorMessage.value = "";
   result.value = null;
@@ -193,7 +277,80 @@ function formatPercent(value) {
         analysis.
       </p>
     </section>
+<section class="panel auth-panel">
+  <div class="panel-header">
+    <div>
+      <h2>User Access</h2>
+      <p>
+        Login is required before running AI-powered ETF backtests.
+      </p>
+    </div>
 
+    <button v-if="isLoggedIn" class="secondary-button" @click="logout">
+      Logout
+    </button>
+  </div>
+
+  <div v-if="isLoggedIn" class="login-status">
+    Logged in as <strong>{{ currentUser?.user_name }}</strong>
+  </div>
+
+  <div v-else>
+    <div class="auth-tabs">
+      <button
+        :class="{ active: authMode === 'login' }"
+        @click="authMode = 'login'"
+      >
+        Login
+      </button>
+
+      <button
+        :class="{ active: authMode === 'register' }"
+        @click="authMode = 'register'"
+      >
+        Register
+      </button>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        Phone Number
+        <input v-model="phoneNumber" type="text" placeholder="0912345678" />
+      </label>
+
+      <label>
+        Password
+        <input v-model="password" type="password" placeholder="Password" />
+      </label>
+
+      <label v-if="authMode === 'register'">
+        User Name
+        <input v-model="userName" type="text" placeholder="Jimmy" />
+      </label>
+
+      <label v-if="authMode === 'register'">
+        Registration Code
+        <input
+          v-model="registrationCode"
+          type="password"
+          placeholder="Registration code"
+        />
+      </label>
+    </div>
+
+    <button
+      class="primary-button"
+      :disabled="authLoading"
+      @click="authMode === 'login' ? login() : register()"
+    >
+      {{ authLoading ? 'Processing...' : authMode === 'login' ? 'Login' : 'Register' }}
+    </button>
+
+    <p v-if="authError" class="error-message">
+      {{ authError }}
+    </p>
+  </div>
+</section>
     <section class="panel">
       <div class="panel-header">
         <div>
@@ -245,10 +402,19 @@ function formatPercent(value) {
           />
         </label>
       </div>
-
-      <button class="primary-button" :disabled="loading" @click="runBacktest">
-        {{ loading ? "Running Backtest..." : "Run Moving Average Backtest" }}
-      </button>
+<button
+  class="primary-button"
+  :disabled="loading || !isLoggedIn"
+  @click="runBacktest"
+>
+  {{
+    !isLoggedIn
+      ? 'Login Required to Run Backtest'
+      : loading
+        ? 'Running Backtest...'
+        : 'Run Moving Average Backtest'
+  }}
+</button>
 
       <p v-if="errorMessage" class="error-message">
         {{ errorMessage }}

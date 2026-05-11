@@ -241,3 +241,48 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+
+
+.auth-panel {
+  border-color: rgba(79, 111, 98, 0.22);
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.auth-tabs button,
+.secondary-button {
+  border: 1px solid #d4c7b5;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #fffdf9;
+  color: #4f5f58;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.auth-tabs button.active {
+  background: #4f6f62;
+  color: #fff;
+  border-color: #4f6f62;
+}
+
+.login-status {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #eef4ef;
+  color: #40564d;
+  font-weight: 700;
+}
+
+.secondary-button {
+  height: fit-content;
+}
+
+.secondary-button:hover,
+.auth-tabs button:hover {
+  transform: translateY(-1px);
+}
